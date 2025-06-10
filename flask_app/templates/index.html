@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for ('static', filename='style.css') }}">
+    <title>Call Trend Tracker</title>
+</head>
+<body>
+    <h1>Upload a Call CSV File</h1>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Upload and Generate Report</button>
+    </form>
+
+    {% with messages = get_flashed_messages(category_filter=['File']) %} <!-- The with is a jinja2 template construct in which we can assign values to variables. so we assign the flashed messages to the message variable-->
+        {% if messages %} <!-- this checks to see if there are any flash messages in the messages variable. if it isn't empty then it will execute the following code block-->
+            {% for message in messages %} <!-- loops through each message in the messages list and displays each message inside a paragraph tag-->
+                <p class="error">{{message}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <p>Here is a template for the file you will need to upload in order for this program to work</p>
+    <a href="/download_template" class="button">Download CSV Template</a>
+</body>
+</html>
