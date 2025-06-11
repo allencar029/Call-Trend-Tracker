@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Ready Page</title>
+</head>
+<body>
+    <h1>Your Report is Ready! Click below to download your report!</h1>
+    <form action="{{ url_for('download_report', filename=filename) }}" method="GET">
+        <button type="submit">Download Report</button>
+    </form>
+</body>
+</html>

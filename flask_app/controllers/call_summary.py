@@ -67,29 +67,6 @@ def csv_to_excel(file_path):
 
     return
 
-# @app.route('/', methods=['GET', 'POST'])
-# def root():
-#     if request.method == 'POST':
-#         file = request.files.get('file')
-#         if not file or file.filename == '':
-#             flash('No file uploaded.', 'File')
-#             return render_template('index.html')
-
-#         if file and allowed_file(file.filename):
-#             filename = secure_filename(file.filename)
-#             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-#             file.save(filepath)
-#             print('successful file save')
-
-#             csv_to_excel(filepath)
-
-#             return render_template('index.html', report_ready=True, filename=session['zip_report_filename'])
-
-#         flash('Invalid file type*', 'File')
-#         return render_template('index.html')
-
-#     return render_template('index.html')
-
 @app.route('/')
 def root():
     return render_template('index.html')
