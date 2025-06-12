@@ -29,30 +29,20 @@ def csv_to_excel(file_path):
 
     df = pd.read_csv(file_path)
 
+    # most_common_reason  = reason_summary.iloc[0]['Reason for Call']
+    # most_common_reason_count = reason_summary.iloc[0]['Number of Calls']
+    # print(f"The most common call reason was {most_common_reason} having {most_common_reason_count} calls, and the call reason with the greatest call duration is '{top_reason}' with the average duration being {top_avg_duration} seconds.")
+
+    summary = df.groupby('reason')['call_duration_seconds'].agg(Calls='count', AvgDuration='mean').reset_index()
+    summary = summary.rename(columns={'reason': 'Reason for Call', 'Calls': 'Number of Calls', 'AvgDuration': 'Mean Call Time Seconds'})
+    summary = summary.sort_values(by='Number of Calls', ascending=False).reset_index(drop=True)
+
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
-
-    avg_duration_call_type = df.groupby('reason')['call_duration_seconds'].agg(['count', 'mean'])
-
-    top_reason = avg_duration_call_type['mean'].idxmax()
-    top_avg_duration = avg_duration_call_type['mean'].max()
-
-    reason_summary = avg_duration_call_type.reset_index()
-
-    reason_summary.columns = ['Reason for Call', 'Number of Calls', 'Mean Call Time Seconds']
-    reason_summary = reason_summary.sort_values(by='Number of Calls', ascending=False)
-    reason_summary = reason_summary.reset_index(drop=True)
-
-
-    most_common_reason  = reason_summary.iloc[0]['Reason for Call']
-    most_common_reason_count = reason_summary.iloc[0]['Number of Calls']
-    print(reason_summary)
-    print(f"The most common call reason was {most_common_reason} having {most_common_reason_count} calls, and the call reason with the greatest call duration is '{top_reason}' with the average duration being {top_avg_duration} seconds.")
-
     excel_filename = f"call_summary_report_{timestamp}.xlsx"
     excel_path = os.path.join(reports_folder, excel_filename) 
 
     try:
-        reason_summary.to_excel(excel_path, index=False)
+        summary.to_excel(excel_path, index=False)
         print(f"Excel file {excel_path} successfully created")
     except Exception as e:
         print(f"Failed to create {excel_path} in excel: {e}")
@@ -65,7 +55,18 @@ def csv_to_excel(file_path):
 
     session['zip_report_filename'] = zip_filename
 
-    return
+    return zip_path
+
+def clear_folder(folder_path):
+    if os.path.exists(folder_path):
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                print(f"Failed to delete {file_path}: {e}")
+
 
 @app.route('/')
 def root():
@@ -85,6 +86,7 @@ def template_download():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
+    uploads_folder = app.config['UPLOAD_FOLDER']
     if file.filename == '':
         flash('No file selected*', 'File')
         return redirect('/')
@@ -95,6 +97,7 @@ def upload_file():
         print('successful file save')
 
         csv_to_excel(filepath) 
+        clear_folder(uploads_folder)
 
         return redirect('/report-ready')
     flash('Invalid file type*', 'File')
@@ -103,9 +106,11 @@ def upload_file():
 @app.route('/report-ready')
 def report_ready():
     filename = session.get('zip_report_filename')
+    reports_folder = app.config['REPORTS_FOLDER']
     print(filename)
     if not filename:
         flash('You must upload a file before viewing the report.', 'File')
+        clear_folder(reports_folder)
         return redirect(url_for('root'))
     
     session.clear()
