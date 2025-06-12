@@ -9,7 +9,7 @@ app.secret_key = os.environ.get('SECRET_KEY')
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
 uploads_folder = os.path.join(base_dir, 'uploads')
-reports_folder = os.path.join(base_dir, '..', 'reports')
+reports_folder = os.path.join(base_dir, 'reports')
 sample_template_folder = os.path.join(base_dir, 'sample_template')
 
 app.config['UPLOAD_FOLDER'] = uploads_folder

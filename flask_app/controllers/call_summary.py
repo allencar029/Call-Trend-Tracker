@@ -127,3 +127,9 @@ def download_report(filename):
 
     flash('File not found*', 'File')
     return redirect(url_for('root'))
+
+@app.route('/return')
+def return_to_homepage():
+    reports_folder = app.config['REPORTS_FOLDER']
+    clear_folder(reports_folder)
+    return render_template('index.html')
