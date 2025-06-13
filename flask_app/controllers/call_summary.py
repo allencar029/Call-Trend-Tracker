@@ -6,6 +6,12 @@ import time
 import zipfile
 from werkzeug.utils import secure_filename
 
+def get_uploads_folder():
+    return app.config['UPLOAD_FOLDER']
+
+def get_reports_folder():
+    return app.config['REPORTS_FOLDER']
+
 def allowed_file(filename):
     return '.' in filename and \
             filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -24,14 +30,10 @@ def zip_single_file(file_path, zip_path):
 
 def csv_to_excel(file_path):
     base_dir = os.path.abspath(os.path.dirname(__file__))
-    reports_folder = os.path.join(base_dir, '..', 'reports')
-    os.makedirs(reports_folder, exist_ok=True)
+    # reports_folder = os.path.join(base_dir, '..', 'reports')
+    os.makedirs(get_reports_folder(), exist_ok=True)
 
     df = pd.read_csv(file_path)
-
-    # most_common_reason  = reason_summary.iloc[0]['Reason for Call']
-    # most_common_reason_count = reason_summary.iloc[0]['Number of Calls']
-    # print(f"The most common call reason was {most_common_reason} having {most_common_reason_count} calls, and the call reason with the greatest call duration is '{top_reason}' with the average duration being {top_avg_duration} seconds.")
 
     summary = df.groupby('reason')['call_duration_seconds'].agg(Calls='count', AvgDuration='mean').reset_index()
     summary = summary.rename(columns={'reason': 'Reason for Call', 'Calls': 'Number of Calls', 'AvgDuration': 'Mean Call Time Seconds'})
@@ -39,7 +41,7 @@ def csv_to_excel(file_path):
 
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
     excel_filename = f"call_summary_report_{timestamp}.xlsx"
-    excel_path = os.path.join(reports_folder, excel_filename) 
+    excel_path = os.path.join(get_reports_folder(), excel_filename) 
 
     try:
         summary.to_excel(excel_path, index=False)
@@ -48,7 +50,7 @@ def csv_to_excel(file_path):
         print(f"Failed to create {excel_path} in excel: {e}")
 
     zip_filename = f'report_{timestamp}.zip'
-    zip_path = os.path.join(reports_folder, zip_filename)
+    zip_path = os.path.join(get_reports_folder(), zip_filename)
 
     zip_single_file(excel_path, zip_path)
     os.remove(excel_path)
@@ -56,6 +58,8 @@ def csv_to_excel(file_path):
     session['zip_report_filename'] = zip_filename
 
     return zip_path
+
+
 
 def clear_folder(folder_path):
     if os.path.exists(folder_path):
@@ -86,18 +90,18 @@ def template_download():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
-    uploads_folder = app.config['UPLOAD_FOLDER']
+    # uploads_folder = app.config['UPLOAD_FOLDER']
     if file.filename == '':
         flash('No file selected*', 'File')
         return redirect('/')
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        filepath = os.path.join(get_uploads_folder(), filename)
         file.save(filepath)
         print('successful file save')
 
         csv_to_excel(filepath) 
-        clear_folder(uploads_folder)
+        clear_folder(get_uploads_folder())
 
         return redirect('/report-ready')
     flash('Invalid file type*', 'File')
@@ -106,11 +110,11 @@ def upload_file():
 @app.route('/report-ready')
 def report_ready():
     filename = session.get('zip_report_filename')
-    reports_folder = app.config['REPORTS_FOLDER']
+    # reports_folder = app.config['REPORTS_FOLDER']
     print(filename)
     if not filename:
         flash('You must upload a file before viewing the report.', 'File')
-        clear_folder(reports_folder)
+        clear_folder(get_reports_folder())
         return redirect(url_for('root'))
     
     session.clear()
@@ -128,8 +132,8 @@ def download_report(filename):
     flash('File not found*', 'File')
     return redirect(url_for('root'))
 
-@app.route('/return')
+@app.route('/index_page')
 def return_to_homepage():
-    reports_folder = app.config['REPORTS_FOLDER']
-    clear_folder(reports_folder)
+    # reports_folder = app.config['REPORTS_FOLDER']
+    clear_folder(get_reports_folder())
     return render_template('index.html')
