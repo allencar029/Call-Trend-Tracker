@@ -29,8 +29,6 @@ def zip_single_file(file_path, zip_path):
     return zip_path
 
 def csv_to_excel(file_path):
-    base_dir = os.path.abspath(os.path.dirname(__file__))
-    # reports_folder = os.path.join(base_dir, '..', 'reports')
     os.makedirs(get_reports_folder(), exist_ok=True)
 
     df = pd.read_csv(file_path)
@@ -90,7 +88,6 @@ def template_download():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
-    # uploads_folder = app.config['UPLOAD_FOLDER']
     if file.filename == '':
         flash('No file selected*', 'File')
         return redirect('/')
@@ -110,7 +107,6 @@ def upload_file():
 @app.route('/report-ready')
 def report_ready():
     filename = session.get('zip_report_filename')
-    # reports_folder = app.config['REPORTS_FOLDER']
     print(filename)
     if not filename:
         flash('You must upload a file before viewing the report.', 'File')
@@ -134,6 +130,5 @@ def download_report(filename):
 
 @app.route('/index_page')
 def return_to_homepage():
-    # reports_folder = app.config['REPORTS_FOLDER']
     clear_folder(get_reports_folder())
     return render_template('index.html')
