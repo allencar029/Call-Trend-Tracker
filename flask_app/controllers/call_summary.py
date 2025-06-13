@@ -9,12 +9,15 @@ from werkzeug.utils import secure_filename
 def get_uploads_folder():
     return app.config['UPLOAD_FOLDER']
 
+
 def get_reports_folder():
     return app.config['REPORTS_FOLDER']
+
 
 def allowed_file(filename):
     return '.' in filename and \
             filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
 
 def zip_single_file(file_path, zip_path):
     if not os.path.exists(file_path):
@@ -27,6 +30,7 @@ def zip_single_file(file_path, zip_path):
         print(f"Added {arcname} to zip")
 
     return zip_path
+
 
 def csv_to_excel(file_path):
     os.makedirs(get_reports_folder(), exist_ok=True)
@@ -56,7 +60,6 @@ def csv_to_excel(file_path):
     session['zip_report_filename'] = zip_filename
 
     return zip_path
-
 
 
 def clear_folder(folder_path):
@@ -97,12 +100,14 @@ def upload_file():
         file.save(filepath)
         print('successful file save')
 
-        csv_to_excel(filepath) 
+        zip_path = csv_to_excel(filepath) 
+        session['zip_path'] = zip_path
         clear_folder(get_uploads_folder())
 
         return redirect('/report-ready')
     flash('Invalid file type*', 'File')
     return redirect('/')
+
 
 @app.route('/report-ready')
 def report_ready():
@@ -113,14 +118,15 @@ def report_ready():
         clear_folder(get_reports_folder())
         return redirect(url_for('root'))
     
-    session.clear()
+    session.pop('zip_report_filename', None)
 
     return render_template('report_ready.html', filename=filename)
 
+
 @app.route('/download/<filename>')
 def download_report(filename):
-    base_dir = os.path.abspath(os.path.dirname(__file__))
-    zip_path = os.path.join(base_dir, '..', 'reports', filename)
+    zip_path = session.get('zip_path')
+    session.pop('zip_path', None)
 
     if os.path.exists(zip_path):
         return send_file(zip_path, as_attachment=True)
@@ -128,7 +134,8 @@ def download_report(filename):
     flash('File not found*', 'File')
     return redirect(url_for('root'))
 
+
 @app.route('/index_page')
 def return_to_homepage():
     clear_folder(get_reports_folder())
-    return render_template('index.html')
+    return redirect('/')
