@@ -37,8 +37,8 @@ def csv_to_excel(file_path):
 
     df = pd.read_csv(file_path)
 
-    summary = df.groupby('reason')['call_duration_seconds'].agg(Calls='count', AvgDuration='mean').reset_index()
-    summary = summary.rename(columns={'reason': 'Reason for Call', 'Calls': 'Number of Calls', 'AvgDuration': 'Mean Call Time Seconds'})
+    summary = df.groupby('reason')['call_duration_minutes'].agg(Calls='count', AvgDuration='mean').reset_index()
+    summary = summary.rename(columns={'reason': 'Reason for Call', 'Calls': 'Number of Calls', 'AvgDuration': 'Mean Call Time Minutes'})
     summary = summary.sort_values(by='Number of Calls', ascending=False).reset_index(drop=True)
 
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -83,7 +83,12 @@ def template_download():
     template_csv = os.path.join(base_dir, '..', 'sample_template', 'calls.csv')
     zip_file = os.path.join(base_dir, '..', 'sample_template', 'template_download.zip')
 
-    zip_single_file(template_csv, zip_file)
+    if not os.path.exists(template_csv):
+        with open(template_csv, 'w') as f:
+            f.write('caller,call_duration_minutes,reason\n')
+
+    if not os.path.exists(zip_file):
+        zip_single_file(template_csv, zip_file)
 
     return send_file(zip_file, as_attachment=True)
 

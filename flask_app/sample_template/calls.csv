@@ -1,0 +1,14 @@
+caller,call_duration_minutes,reason
+Alice,30,Money movement
+Bob,30,Technical support
+Alice,40,Money movement
+Charlie,10,General inquiry
+Bob,15,Technical support
+Alice,12,General inquiry
+Greg,45,Money movement
+Tyler,37,Money movement
+Johnson,29,Money movement
+Henry,5,Credit card
+William,4,Credit card
+Josh,12,General inquiry
+William,48,Technical support
